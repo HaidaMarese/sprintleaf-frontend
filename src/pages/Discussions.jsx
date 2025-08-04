@@ -4,10 +4,10 @@ import api from "../lib/api";
 function Discussions() {
   const [discussions, setDiscussions] = useState([]);
   const [form, setForm] = useState({ title: "", content: "" });
+  const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
-  
   const load = async () => {
     try {
       const { data } = await api.get("/discussions");
@@ -24,19 +24,22 @@ function Discussions() {
     load();
   }, []);
 
- 
   const submit = async (e) => {
     e.preventDefault();
     try {
-      await api.post("/discussions", form);
+      if (editingId) {
+        await api.patch(`/discussions/${editingId}`, form);
+        setEditingId(null);
+      } else {
+        await api.post("/discussions", form);
+      }
       setForm({ title: "", content: "" });
       load();
     } catch (e) {
-      setErr(e.response?.data?.message || "Error creating discussion");
+      setErr(e.response?.data?.message || "Error submitting discussion");
     }
   };
 
-  
   const remove = async (id) => {
     try {
       await api.delete(`/discussions/${id}`);
@@ -44,6 +47,16 @@ function Discussions() {
     } catch (e) {
       console.error("Failed to delete discussion:", e);
     }
+  };
+
+  const edit = (d) => {
+    setForm({ title: d.title, content: d.content });
+    setEditingId(d._id);
+  };
+
+  const cancelEdit = () => {
+    setForm({ title: "", content: "" });
+    setEditingId(null);
   };
 
   return (
@@ -70,12 +83,25 @@ function Discussions() {
             onChange={(e) => setForm({ ...form, content: e.target.value })}
             required
           />
-          <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded">
-            Post
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              type="submit"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded"
+            >
+              {editingId ? "Update" : "Post"}
+            </button>
+            {editingId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="text-sm underline text-gray-500"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
 
-      
         <div>
           {loading ? (
             <p>Loading...</p>
@@ -91,12 +117,20 @@ function Discussions() {
                     By {d.owner?.name || "Someone"} ·{" "}
                     {new Date(d.createdAt).toLocaleString()}
                   </p>
-                  <button
-                    onClick={() => remove(d._id)}
-                    className="text-red-600 text-sm underline mt-2"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex gap-4 mt-2">
+                    <button
+                      onClick={() => edit(d)}
+                      className="text-blue-600 text-sm underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => remove(d._id)}
+                      className="text-red-600 text-sm underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

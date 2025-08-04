@@ -1,4 +1,5 @@
-import Navbar from "../components/Navbar"; 
+import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 function Home() {
   const heroUrl =
@@ -25,6 +26,22 @@ function Home() {
             A clean project & task manager with calendar insights for small
             teams and solo makers.
           </p>
+
+          {/* Add Buttons */}
+          <div className="mt-8 flex justify-center gap-4">
+            <Link
+              to="/login"
+              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700"
+            >
+              Register
+            </Link>
+          </div>
         </div>
       </section>
     </>
